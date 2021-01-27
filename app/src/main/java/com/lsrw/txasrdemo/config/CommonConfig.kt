@@ -11,8 +11,8 @@ object CommonConfig {
         paramsMap[NetParams.SourceType] = "1"
         paramsMap[NetParams.Action] = "CreateRecTask"
         paramsMap[NetParams.Version] = "2019-06-14"
-        paramsMap[NetParams.SecretId] = "AKIDb7PffOS96lBJBothnFQ5WifgT0O35282"
-        paramsMap[NetParams.SecretKey] = "oSAeqndCDzUTCzCPLEr76rLYdU5VdZGg"
+        paramsMap[NetParams.SecretId] = ""
+        paramsMap[NetParams.SecretKey] = ""
         paramsMap[NetParams.ChannelNum] = "1"
         paramsMap[NetParams.Language] = "zh-CN"
         paramsMap[NetParams.Region] = "" //空参数 部分接口不需要使用
