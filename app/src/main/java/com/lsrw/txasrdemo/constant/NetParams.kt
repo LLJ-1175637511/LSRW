@@ -15,4 +15,7 @@ object NetParams {
     const val SecretId = "SecretId"
     const val Timestamp = "Timestamp"
     const val Signature = "Signature"
+
+
+    const val TaskId = "TaskId"
 }
