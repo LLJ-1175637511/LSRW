@@ -1,8 +1,9 @@
-package com.lsrw.txasrdemo
+package com.lsrw.txasrdemo.ui.activity
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.widget.Toast
+import com.lsrw.txasrdemo.R
 import com.lsrw.txasrdemo.config.CommonConfig
 import com.lsrw.txasrdemo.constant.NetParams
 import com.lsrw.txasrdemo.enum.RequestType
