@@ -16,6 +16,5 @@ object NetParams {
     const val Timestamp = "Timestamp"
     const val Signature = "Signature"
 
-
     const val TaskId = "TaskId"
 }

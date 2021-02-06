@@ -216,11 +216,6 @@ class SrActivity : AppCompatActivity() {
         val tm = TreeMap<String, String>()
         val timeTemp = System.currentTimeMillis() / 1000
         val random = (0..10000).random()
-//        tm[NetParams.EngineModelType] = CommonConfig.paramsMap.getValue(NetParams.EngineModelType)
-//        tm[NetParams.ChannelNum] = CommonConfig.paramsMap.getValue(NetParams.ChannelNum)
-//        tm[NetParams.ResTextFormat] = CommonConfig.paramsMap.getValue(NetParams.ResTextFormat)
-//        tm[NetParams.SourceType] = CommonConfig.paramsMap.getValue(NetParams.SourceType)
-//        tm[NetParams.Data] = base64
         tm[NetParams.Action] = "DescribeTaskStatus"
         tm[NetParams.Version] = CommonConfig.paramsMap.getValue(NetParams.Version)
         tm[NetParams.Timestamp] = timeTemp.toString()
