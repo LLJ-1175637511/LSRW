@@ -13,13 +13,14 @@ import androidx.core.content.ContextCompat
 import com.google.gson.Gson
 import com.lsrw.txasrdemo.R
 import com.lsrw.txasrdemo.bean.FileRecogResult
-import com.lsrw.txasrdemo.bean.FileRecognize
-import com.lsrw.txasrdemo.config.CommonConfig
-import com.lsrw.txasrdemo.constant.NetParams
-import com.lsrw.txasrdemo.enum.RequestType
+import com.lsrw.txasrdemo.bean.FileRecogErr
+import com.lsrw.txasrdemo.bean.FileRecogIdSuc
+import com.lsrw.txasrdemo.config.CommonParams
+import com.lsrw.txasrdemo.enums.RequestType
 import com.lsrw.txasrdemo.net.RetrofitCreator
+import com.lsrw.txasrdemo.net.config.FileConfig
 import com.lsrw.txasrdemo.ui.contem.SRChronometer
-import com.lsrw.txasrdemo.ui.contem.SRPlayImage
+import com.lsrw.txasrdemo.ui.contem.ARPlayImage
 import com.lsrw.txasrdemo.utils.LogUtils
 import com.lsrw.txasrdemo.utils.SignUtils
 import okhttp3.*
@@ -27,17 +28,17 @@ import java.io.BufferedInputStream
 import java.io.FileInputStream
 import java.io.IOException
 import java.lang.StringBuilder
-import java.util.*
 import kotlin.concurrent.thread
 
 class SrActivity : AppCompatActivity() {
 
+    private val TAG = this.javaClass.simpleName
+
     companion object {
-        private const val TAG = "SrActivity"
         private const val SAVED_PATH = "speak"
     }
 
-    private lateinit var srPlayImg: SRPlayImage
+    private lateinit var srPlayImg: ARPlayImage
     private lateinit var srChronometer: SRChronometer
     private lateinit var btStartSR: Button
     private lateinit var btStopSR: Button
@@ -51,7 +52,7 @@ class SrActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_speak)
+        setContentView(R.layout.activity_file_recong)
 
         initView()
         initOther()
@@ -61,8 +62,8 @@ class SrActivity : AppCompatActivity() {
 
     private fun initListener() {
         btStartSR.setOnClickListener {
-            srPlayImg.startSR()
-            srChronometer.startSR()
+            srPlayImg.startAR()
+            srChronometer.startAR()
             it.visibility = View.INVISIBLE
             srPlayImg.visibility = View.VISIBLE
             btStopSR.visibility = View.VISIBLE
@@ -72,18 +73,18 @@ class SrActivity : AppCompatActivity() {
             srPlayImg.apply {
                 val isPlaying = getPlayState()
                 if (isPlaying) {
-                    pauseSR()
-                    srChronometer.pauseSR()
+                    pauseAR()
+                    srChronometer.pauseAR()
                 } else {
-                    resumeSR()
-                    srChronometer.resumeSR()
+                    resumeAR()
+                    srChronometer.resumeAR()
                 }
             }
         }
 
         btStopSR.setOnClickListener {
-            srPlayImg.stopSR()
-            srChronometer.stopSR()
+            srPlayImg.stopAR()
+            srChronometer.stopAR()
             it.visibility = View.INVISIBLE
             srPlayImg.visibility = View.INVISIBLE
             btStartSR.visibility = View.VISIBLE
@@ -98,6 +99,7 @@ class SrActivity : AppCompatActivity() {
             }
             sendRequest(true)
         }
+
         btRecognizeContent.setOnClickListener {
             if (taskId.isEmpty()){
                 Toast.makeText(this, "请先获取taskId", Toast.LENGTH_SHORT).show()
@@ -138,9 +140,9 @@ class SrActivity : AppCompatActivity() {
             } catch (e: Exception) {
                 e.printStackTrace()
             } finally {
-//                runOnUiThread {
-//                    Toast.makeText(this, "load suc", Toast.LENGTH_SHORT).show()
-//                }
+                runOnUiThread {
+                    Toast.makeText(this, "load suc", Toast.LENGTH_SHORT).show()
+                }
             }
         }
     }
@@ -149,10 +151,10 @@ class SrActivity : AppCompatActivity() {
         try {
             val client = OkHttpClient()
             val call = if (isId) {
-                requestBuilder.url("https://${RetrofitCreator.baseUrl}")
+                requestBuilder.url("https://${RetrofitCreator.tencentBaseUrl}")
                     .post(buildBodyForId()).build()
             } else {
-                requestBuilder.url("https://${RetrofitCreator.baseUrl}")
+                requestBuilder.url("https://${RetrofitCreator.tencentBaseUrl}")
                     .post(buildBodyForResult()).build()
             }
             client.newCall(call).enqueue(object : Callback {
@@ -162,30 +164,28 @@ class SrActivity : AppCompatActivity() {
 
                 override fun onResponse(call: Call, response: Response) {
                     val responseData = response.body?.string()
+//                    Log.d(TAG,responseData.toString())
                     if (responseData != null) {
                         val gson = Gson()
-                        if (isId) {
-                            val result =
-                                gson.fromJson(responseData, FileRecognize.FileRecogBean::class.java)
-                            taskId = result.Response.Data.TaskId.toString()
+                        if (!responseData.contains("TaskId")){ //错误的请求
+                            val result = gson.fromJson(responseData,FileRecogErr.ErrBean::class.java)
+                            val errInfo = result.Response.Error
+                            displayResult(errInfo.toString())
+                            LogUtils.d(TAG, "err:${errInfo}")
+                        }else{
+                            val jsonResponse =
+                                gson.fromJson(responseData, FileRecogIdSuc.SucBean::class.java)
+                            taskId = jsonResponse.Response.Data.TaskId.toString()
                             LogUtils.d(TAG, "requestId:$taskId")
-                            runOnUiThread {
-                                tvRecogContent.text = "请求成功\ntaskId:$taskId"
-                            }
-                        } else {
-                            LogUtils.d(TAG, "all result:${responseData}")
-                            val result =
-                                gson.fromJson(responseData, FileRecogResult.RecogResult::class.java)
-                            val tempTest = result.Response.Data.Result
-                            val final = buildResultString(tempTest)
-                            runOnUiThread {
-                                if (final.isNotEmpty()) {
-                                    tvRecogContent.text = final
-                                } else {
-                                    tvRecogContent.text = "识别信息有误\n$tempTest"
-                                    Toast.makeText(this@SrActivity, "请求失败", Toast.LENGTH_SHORT)
-                                        .show()
-                                }
+                            if (isId) {
+                                displayResult("请求成功\ntaskId:$taskId")
+                            } else {
+                                LogUtils.d(TAG, "all result:${responseData}")
+                                val result =
+                                    gson.fromJson(responseData, FileRecogResult.RecogResult::class.java)
+                                val tempResult = result.Response.Data.Result
+                                val final = buildResultString(tempResult)
+                                displayResult(final)
                             }
                         }
                     }
@@ -193,6 +193,18 @@ class SrActivity : AppCompatActivity() {
             })
         } catch (e: Exception) {
             e.printStackTrace()
+        }
+    }
+
+    private fun displayResult(requestInfo: String) {
+        runOnUiThread {
+            if (requestInfo.isNotEmpty()) {
+                tvRecogContent.text = requestInfo
+            } else {
+                tvRecogContent.text = "识别信息有误"
+                Toast.makeText(this@SrActivity, "请求失败", Toast.LENGTH_SHORT)
+                    .show()
+            }
         }
     }
 
@@ -213,56 +225,36 @@ class SrActivity : AppCompatActivity() {
     }
 
     private fun buildBodyForResult(): FormBody {
-        val tm = TreeMap<String, String>()
         val timeTemp = System.currentTimeMillis() / 1000
         val random = (0..10000).random()
-        tm[NetParams.Action] = "DescribeTaskStatus"
-        tm[NetParams.Version] = CommonConfig.paramsMap.getValue(NetParams.Version)
-        tm[NetParams.Timestamp] = timeTemp.toString()
-        tm[NetParams.Nonce] = random.toString()
-        tm[NetParams.SecretId] = CommonConfig.paramsMap.getValue(NetParams.SecretId)
-        tm[NetParams.Language] = CommonConfig.paramsMap.getValue(NetParams.Language)
-        tm[NetParams.TaskId] = taskId
-        tm[NetParams.Region] = ""
 
+        val tm = FileConfig.buildTreeMapForResult(timeTemp,random,taskId)
         val fb = FormBody.Builder()
         LogUtils.d(TAG, "treeMap:\n")
         tm.keys.forEach { key ->
             fb.add(key, tm[key]!!)
-//            LogUtils.d(TAG, "$key=${tm[key]}")
+            LogUtils.d(TAG, "$key=${tm[key]}")
         }
         val sign = SignUtils.buildSign(RequestType.POST, tm)
         LogUtils.d(TAG, "sign:$sign")
-        fb.add(NetParams.Signature, sign)
+        fb.add(CommonParams.Signature, sign)
         return fb.build()
     }
 
     private fun buildBodyForId(): FormBody {
-        val tm = TreeMap<String, String>()
         val timeTemp = System.currentTimeMillis() / 1000
         val random = (0..10000).random()
-        tm[NetParams.EngineModelType] = CommonConfig.paramsMap.getValue(NetParams.EngineModelType)
-        tm[NetParams.ChannelNum] = CommonConfig.paramsMap.getValue(NetParams.ChannelNum)
-        tm[NetParams.ResTextFormat] = CommonConfig.paramsMap.getValue(NetParams.ResTextFormat)
-        tm[NetParams.SourceType] = CommonConfig.paramsMap.getValue(NetParams.SourceType)
-        tm[NetParams.Action] = CommonConfig.paramsMap.getValue(NetParams.Action)
-        tm[NetParams.Version] = CommonConfig.paramsMap.getValue(NetParams.Version)
-        tm[NetParams.Timestamp] = timeTemp.toString()
-        tm[NetParams.Nonce] = random.toString()
-        tm[NetParams.SecretId] = CommonConfig.paramsMap.getValue(NetParams.SecretId)
-        tm[NetParams.Data] = base64
-        tm[NetParams.Language] = CommonConfig.paramsMap.getValue(NetParams.Language)
-        tm[NetParams.Region] = ""
+        val tm = FileConfig.buildTreeMapForId(timeTemp,random,base64)
 
         val fb = FormBody.Builder()
         LogUtils.d(TAG, "treeMap:\n")
         tm.keys.forEach { key ->
-            fb.add(key, tm[key]!!)
-//            LogUtils.d(TAG, "$key=${tm[key]}")
+                fb.add(key, tm[key]!!)
+            if (key!=CommonParams.Data) LogUtils.d(TAG, "$key=${tm[key]}")
         }
         val sign = SignUtils.buildSign(RequestType.POST, tm)
         LogUtils.d(TAG, "sign:$sign")
-        fb.add(NetParams.Signature, sign)
+        fb.add(CommonParams.Signature, sign)
         return fb.build()
     }
 

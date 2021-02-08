@@ -6,9 +6,8 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleObserver
 import androidx.lifecycle.OnLifecycleEvent
 import com.lsrw.txasrdemo.R
-import com.lsrw.txasrdemo.enum.MediaState
 
-class SRPlayImage:androidx.appcompat.widget.AppCompatImageView,BaseSRInterface,LifecycleObserver {
+class ARPlayImage:androidx.appcompat.widget.AppCompatImageView,BaseARInterface,LifecycleObserver {
     constructor(context: Context) : super(context)
     constructor(context: Context, attrs: AttributeSet?) : super(context, attrs)
 
@@ -21,23 +20,23 @@ class SRPlayImage:androidx.appcompat.widget.AppCompatImageView,BaseSRInterface,L
         else setImageResource(R.drawable.ic_baseline_play_circle_outline_24)
     }
 
-    override fun startSR() {
+    override fun startAR() {
         isPlaying = true
         mediaControl()
     }
 
     @OnLifecycleEvent(Lifecycle.Event.ON_PAUSE)
-    override fun pauseSR() {
+    override fun pauseAR() {
         isPlaying = false
         mediaControl()
     }
 
-    override fun resumeSR() {
+    override fun resumeAR() {
         isPlaying = true
         mediaControl()
     }
 
-    override fun stopSR() {
+    override fun stopAR() {
         isPlaying = false
         mediaControl()
     }

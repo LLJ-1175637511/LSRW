@@ -1,4 +1,4 @@
-package com.lsrw.txasrdemo.enum
+package com.lsrw.txasrdemo.enums
 
 enum class RequestType {
     POST,GET

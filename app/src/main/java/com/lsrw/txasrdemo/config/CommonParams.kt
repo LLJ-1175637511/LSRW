@@ -1,6 +1,6 @@
-package com.lsrw.txasrdemo.constant
+package com.lsrw.txasrdemo.config
 
-object NetParams {
+object CommonParams {
     const val Region = "Region"
     const val Language = "Language"
     const val SecretKey = "SecretKey"

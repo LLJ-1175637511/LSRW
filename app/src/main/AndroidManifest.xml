@@ -15,24 +15,29 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity android:name=".ui.activity.MainActivity">
-
-        </activity>
-        <activity android:name=".ui.activity.SpeakActivity" >
-
-        </activity>
-        <activity android:name=".ui.activity.SrActivity" >
-
-        </activity>
-        <activity android:name=".ui.activity.RealTimeActivity" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <activity android:name=".ui.activity.SrActivity"
+            android:launchMode="singleTop">
+
+        </activity>
+        <activity android:name=".ui.activity.RealTimeActivity"
+            android:launchMode="singleTop">
+
+        </activity>
         <activity android:name=".ui.activity.AudioActivity" >
 
         </activity>
+        <activity android:name=".ui.activity.CoroutineActivity" >
+
+        </activity>
+        <activity android:name=".ui.activity.FileRecogActivity"
+            android:launchMode="singleTop"/>
     </application>
 
 </manifest>

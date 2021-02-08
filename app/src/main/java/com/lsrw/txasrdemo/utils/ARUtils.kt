@@ -1,13 +1,13 @@
 package com.lsrw.txasrdemo.utils
 
 import android.media.MediaRecorder
-import com.lsrw.txasrdemo.ui.contem.BaseSRInterface
+import com.lsrw.txasrdemo.ui.contem.BaseARInterface
 import java.io.File
 import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.*
 
-class SRUtils :BaseSRInterface{
+class ARUtils :BaseARInterface{
     companion object {
         private const val TAG = "SRUtils"
         private const val MAX_RECORD_TIME = 1000*60 //设置最大录音时长60s
@@ -37,7 +37,7 @@ class SRUtils :BaseSRInterface{
 
     fun getSavedPath() = fileName
 
-    override fun startSR() {
+    override fun startAR() {
         initConfig()
         fileDir?.let { fd ->
             if (fd.exists() && fd.canWrite()) {
@@ -64,15 +64,15 @@ class SRUtils :BaseSRInterface{
         }
     }
 
-    override fun pauseSR() {
+    override fun pauseAR() {
         mediaRecorder?.pause()
     }
 
-    override fun resumeSR() {
+    override fun resumeAR() {
         mediaRecorder?.resume()
     }
 
-    override fun stopSR() {
+    override fun stopAR() {
         mediaRecorder?.stop()
         mediaRecorder?.release()
         mediaRecorder = null
