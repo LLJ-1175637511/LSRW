@@ -1,6 +1,8 @@
 package com.lsrw.txasrdemo.ui.activity
 
+import android.annotation.SuppressLint
 import android.os.Bundle
+import android.text.TextUtils
 import android.view.View
 import android.widget.CheckBox
 import android.widget.Toast
@@ -15,16 +17,20 @@ import com.lsrw.txasrdemo.enums.AudioType
 import com.lsrw.txasrdemo.enums.FileFormatType
 import com.lsrw.txasrdemo.ui.contem.ARChronometer
 import com.lsrw.txasrdemo.ui.contem.ARPlayImage
-import com.lsrw.txasrdemo.vm.FileRecogViewModel
+import com.lsrw.txasrdemo.vm.FRViewModel
 import kotlinx.android.synthetic.main.activity_file_recong.*
+import java.text.SimpleDateFormat
+import java.util.*
 
 class FileRecogActivity : AppCompatActivity() {
 
+    private val TAG = this.javaClass.simpleName
     private lateinit var chronometer: ARChronometer
-    private lateinit var viewModel: FileRecogViewModel
+    private lateinit var viewModel: FRViewModel
     private lateinit var playImage: ARPlayImage
     private lateinit var isOutPutWav:CheckBox
 
+    @SuppressLint("SimpleDateFormat")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -35,7 +41,7 @@ class FileRecogActivity : AppCompatActivity() {
         viewModel = ViewModelProvider(
             this,
             SavedStateViewModelFactory(application, this)
-        )[FileRecogViewModel::class.java]
+        )[FRViewModel::class.java]
 
         chronometer = binding.srChronometer
         playImage = binding.ivOperaSr
@@ -49,6 +55,8 @@ class FileRecogActivity : AppCompatActivity() {
         lifecycle.addObserver(playImage)
 
         bt_sr_start.setOnClickListener {
+            val time = SimpleDateFormat("yyyyMMddhhmmss").format(Date())
+            viewModel.setFileName("fr$time")
             viewModel.startAR()
         }
 
@@ -62,10 +70,6 @@ class FileRecogActivity : AppCompatActivity() {
 
         viewModel.getAudioStateLiveData().observe(this, Observer { state ->
             changeState(state)
-        })
-
-        viewModel.getBase64LiveData().observe(this, Observer {
-            Toast.makeText(this,"保存成功：\n${viewModel.getSavedFileName()}",Toast.LENGTH_SHORT).show()
         })
 
         playImage.setOnClickListener {
@@ -84,7 +88,7 @@ class FileRecogActivity : AppCompatActivity() {
                 viewModel.setFileFormat(FileFormatType.PCM)
             }
         }
-        viewModel.setFileName("fr")
+
     }
 
     private fun changeState(state: AudioType) {
@@ -114,15 +118,14 @@ class FileRecogActivity : AppCompatActivity() {
             AudioType.DESTROY ->{
                 chronometer.stopAR()
             }
-            else->{
-                chronometer.stopAR()
-                playImage.stopAR()
+            AudioType.PREPARE ->{
                 bt_sr_start.visibility = View.VISIBLE
                 bt_sr_stop.visibility = View.INVISIBLE
                 playImage.visibility = View.INVISIBLE
             }
+            else->{
+
+            }
         }
     }
-
-
 }
